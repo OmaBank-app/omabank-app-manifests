@@ -33,6 +33,9 @@ spec:
       - name: api-container
         image: omabankacrdev923.azurecr.io/omabank-api:latest
         imagePullPolicy: Always
+        env:
+        - name: DATABASE_URL
+          value: "sqlite+aiosqlite:///tmp/omabank.db"
         ports:
         - containerPort: 8000
           name: http-api
