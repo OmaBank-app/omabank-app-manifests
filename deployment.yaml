@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omabank-api
+  labels:
+    app: omabank-api
+    tier: backend
+    sec-zone: trusted
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: omabank-api
+  template:
+    metadata:
+      labels:
+        app: omabank-api
+    spec:
+      securityContext:
+        # Enforces Kyverno/OPA compliance at the Pod level
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: api-container
+        image: omabankacrdev923.azurecr.io/omabank-api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http-api
+        
+        # Hardened container-level isolation restrictions
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65532
+          runAsGroup: 65532
+          capabilities:
+            drop:
+            - ALL
+            
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+            
+        # Standard ephemeral scratchpad for modern stateless engines
+        volumeMounts:
+        - mountPath: /tmp
+          name: ephemeral-tmp
+      volumes:
+      - name: ephemeral-tmp
+        emptyDir: {}

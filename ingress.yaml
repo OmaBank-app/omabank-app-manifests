@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omabank-api-ingress
+  labels:
+    app: omabank-api
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    appgw.ingress.kubernetes.io/connection-draining: "true"
+    appgw.ingress.kubernetes.io/connection-draining-timeout: "30"
+    
+    # Connects your cloud WAF policy directly to this traffic route
+    appgw.ingress.kubernetes.io/waf-policy-for-path: "/subscriptions/170069c8-2846-4a3d-b161-83a6cd56536d/resourceGroups/omabank-dev-rg/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/OmaBankStrictWAF"
+spec:
+  rules:
+  # There is no host here because I do not have a domain yet so I enbaled IP-only access.
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: omabank-api-service
+            port:
+              number: 8000
