@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: omabank-db-migration
+  annotations:
+    # This tells ArgoCD: "Run this BEFORE deploying the API"
+    argocd.argoproj.io/hook: PreSync
+    # This tells ArgoCD: "Delete this pod once the migration succeeds"
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      serviceAccountName: omabank-api-sa
+      restartPolicy: Never
+      containers:
+      - name: alembic
+        image: omabankacrdev923.azurecr.io/omabank-api:latest
+        imagePullPolicy: Always
+
+        # Override command to run the database migration
+        command: ["/usr/local/bin/python", "-m", "alembic", "upgrade", "head"]
+
+        envFrom:
+        - secretRef:
+            name: omabank-api-secret-generated

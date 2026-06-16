@@ -8,5 +8,5 @@ spec:
       authType: WorkloadIdentity
       vaultUrl: "https://omabankkv-dev-923.vault.azure.net/"
       serviceAccountRef:
-        name: default
+        name: omabank-api-sa
         namespace: default

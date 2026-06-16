@@ -39,6 +39,7 @@ spec:
       labels:
         app: omabank-api
     spec:
+      serviceAccountName: omabank-api-sa
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
@@ -51,11 +52,14 @@ spec:
         image: omabankacrdev923.azurecr.io/omabank-api:latest
         imagePullPolicy: Always
         
-        # 100% Zero-Trust: Injects the dynamically generated secret from ESO!
+        # 100% Zero-Trust: Injects the dynamically generated secret from ESO
         envFrom:
         - secretRef:
             name: omabank-api-secret-generated
-            
+        env:
+        - name: REDIS_URL
+          value: "redis://omabank-redis-service:6379/0"
+
         ports:
         - containerPort: 8000
           name: http-api
