@@ -3,9 +3,7 @@ kind: Job
 metadata:
   name: omabank-db-migration
   annotations:
-    # This tells ArgoCD: "Run this BEFORE deploying the API"
     argocd.argoproj.io/hook: PreSync
-    # This tells ArgoCD: "Delete this pod once the migration succeeds"
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
   template:
@@ -17,8 +15,11 @@ spec:
         image: omabankacrdev923.azurecr.io/omabank-api:latest
         imagePullPolicy: Always
 
-        # Override command to run the database migration dynamically
-        command: ["python", "-m", "alembic", "upgrade", "head"]
+        # 1. Instructs K8s to step into the /app folder where the python code actually is
+        workingDir: /app 
+        
+        # 2. Uses the correct distroless absolute path to execute the python module safely
+        command: ["/usr/bin/python3", "-m", "alembic", "upgrade", "head"]
 
         envFrom:
         - secretRef:
