@@ -7,6 +7,7 @@ spec:
     azurekv:
       authType: WorkloadIdentity
       vaultUrl: "https://omabankkv-dev-923.vault.azure.net/"
+      tenantId: "0bb1141f-2a96-4fd8-8fc3-b549e7aa77ea"
       serviceAccountRef:
         name: omabank-api-sa
         namespace: default
