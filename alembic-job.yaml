@@ -17,8 +17,8 @@ spec:
         image: omabankacrdev923.azurecr.io/omabank-api:latest
         imagePullPolicy: Always
 
-        # Override command to run the database migration
-        command: ["/usr/local/bin/python", "-m", "alembic", "upgrade", "head"]
+        # Override command to run the database migration dynamically
+        command: ["python", "-m", "alembic", "upgrade", "head"]
 
         envFrom:
         - secretRef:
