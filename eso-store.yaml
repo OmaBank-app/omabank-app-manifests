@@ -1,0 +1,12 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: azure-kv-store
+spec:
+  provider:
+    azurekv:
+      authType: WorkloadIdentity
+      vaultUrl: "https://omabankkv-dev-923.vault.azure.net/"
+      serviceAccountRef:
+        name: default
+        namespace: default

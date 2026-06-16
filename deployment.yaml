@@ -1,3 +1,21 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: omabank-api-external-secret
+spec:
+  refreshInterval: "1h"
+  secretStoreRef:
+    name: azure-kv-store
+    kind: ClusterSecretStore
+  target:
+    name: omabank-api-secret-generated # The name of the K8s secret ESO will create
+    creationPolicy: Owner
+  data:
+  # Pulls the exact database connection string Terraform pushed to Key Vault
+  - secretKey: DATABASE_URL
+    remoteRef:
+      key: omabank-db-connection-string
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,7 +40,6 @@ spec:
         app: omabank-api
     spec:
       securityContext:
-        # Enforces Kyverno/OPA compliance at the Pod level
         runAsNonRoot: true
         runAsUser: 65532
         runAsGroup: 65532
@@ -33,14 +50,15 @@ spec:
       - name: api-container
         image: omabankacrdev923.azurecr.io/omabank-api:latest
         imagePullPolicy: Always
-        env:
-        - name: DATABASE_URL
-          value: "sqlite+aiosqlite:///tmp/omabank.db"
+        
+        # 100% Zero-Trust: Injects the dynamically generated secret from ESO!
+        envFrom:
+        - secretRef:
+            name: omabank-api-secret-generated
+            
         ports:
         - containerPort: 8000
           name: http-api
-        
-        # Hardened container-level isolation restrictions
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -50,7 +68,6 @@ spec:
           capabilities:
             drop:
             - ALL
-            
         resources:
           limits:
             cpu: "500m"
@@ -58,8 +75,6 @@ spec:
           requests:
             cpu: "250m"
             memory: "256Mi"
-            
-        # Standard ephemeral scratchpad for modern stateless engines
         volumeMounts:
         - mountPath: /tmp
           name: ephemeral-tmp
