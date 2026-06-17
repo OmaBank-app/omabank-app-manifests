@@ -14,13 +14,9 @@ spec:
       - name: alembic
         image: omabankacrdev923.azurecr.io/omabank-api:latest
         imagePullPolicy: Always
-
-        # 1. Instructs K8s to step into the /app folder where the python code actually is
-        workingDir: /app 
-        
-        # 2. Uses the correct distroless absolute path to execute the python module safely
-        command: ["/usr/bin/python3", "-m", "alembic", "upgrade", "head"]
-
+        workingDir: /app
+        # Explicitly pass the alembic ini path
+        command: ["/usr/bin/python3", "-m", "alembic", "-c", "/app/alembic.ini", "upgrade", "head"]
         envFrom:
         - secretRef:
             name: omabank-api-secret-generated

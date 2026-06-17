@@ -1,0 +1,18 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-root-user
+spec:
+  validationFailureAction: enforce
+  rules:
+  - name: check-user
+    match:
+      resources:
+        kinds:
+        - Pod
+    validate:
+      message: "Root user is not allowed."
+      pattern:
+        spec:
+          securityContext:
+            runAsNonRoot: true

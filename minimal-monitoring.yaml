@@ -1,0 +1,19 @@
+# Stripped-down Prometheus/Grafana stack to prevent OOM crashes on 4GB node
+alertmanager:
+  enabled: false # Disabled to save RAM
+grafana:
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+prometheus:
+  prometheusSpec:
+    retention: 2h # Only keep 2 hours of data
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"

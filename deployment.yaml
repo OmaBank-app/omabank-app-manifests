@@ -8,10 +8,9 @@ spec:
     name: azure-kv-store
     kind: ClusterSecretStore
   target:
-    name: omabank-api-secret-generated # The name of the K8s secret ESO will create
+    name: omabank-api-secret-generated
     creationPolicy: Owner
   data:
-  # Pulls the exact database connection string Terraform pushed to Key Vault
   - secretKey: DATABASE_URL
     remoteRef:
       key: omabank-db-connection-string
@@ -25,7 +24,7 @@ metadata:
     tier: backend
     sec-zone: trusted
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -51,6 +50,20 @@ spec:
       - name: api-container
         image: omabankacrdev923.azurecr.io/omabank-api:latest
         imagePullPolicy: Always
+        
+        # Health Probes
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
         
         # 100% Zero-Trust: Injects the dynamically generated secret from ESO
         envFrom:
