@@ -1,19 +1,59 @@
-# Stripped-down Prometheus/Grafana stack to prevent OOM crashes on 4GB node
+# Ultra-lean Prometheus stack for B2s_v2 node (2 vCPU, 4GB RAM)
+
+# 1. Disable expensive components
 alertmanager:
-  enabled: false # Disabled to save RAM
-grafana:
+  enabled: false
+
+kubeStateMetrics:
+  enabled: true
   resources:
     requests:
-      memory: "128Mi"
-      cpu: "100m"
+      cpu: 25m
+      memory: 32Mi
     limits:
-      memory: "256Mi"
+      cpu: 50m
+      memory: 64Mi  
+
+nodeExporter:
+  enabled: true
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi  
+
+prometheusOperator:
+  enabled: false
+
+# 2. Optimize Grafana with secure password injection
+grafana:
+  enabled: true
+  persistence:
+    enabled: false  # Disable to save I/O
+  
+  # Secure managed secret from Key Vault
+  admin:25
+    existingSecret: "grafana-admin-secret"
+    userKey: admin-user
+    passwordKey: admin-password
+  
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  
+  sidecar:
+    dashboards:
+      enabled: true
+      defaultDashboardsEnabled: false  # Disable heavy default dashboards
+    datasources:
+      enabled: true
+
+# 3. Disable Prometheus completely due to CPU constraints
 prometheus:
-  prometheusSpec:
-    retention: 2h # Only keep 2 hours of data
-    resources:
-      requests:
-        memory: "256Mi"
-        cpu: "100m"
-      limits:
-        memory: "512Mi"
+  enabled: false

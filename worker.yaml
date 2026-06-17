@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: omabank-worker
+  labels:
+    app: omabank-worker
+    tier: backend
 spec:
   replicas: 1
   selector:
@@ -13,22 +16,39 @@ spec:
         app: omabank-worker
     spec:
       serviceAccountName: omabank-api-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: worker-container
         image: omabankacrdev923.azurecr.io/omabank-api:latest
         imagePullPolicy: Always
-
-        command: ["/usr/local/bin/python", "-m", "celery", "-A", "src.worker.celery_app.celery_instance", "worker", "--loglevel=info", "--pool=solo"]
-
-        # Inject the database password from Key Vault
+        command: ["/usr/bin/python3", "-m", "celery", "-A", "src.worker.celery_app.celery_instance", "worker", "--loglevel=info", "--pool=solo"]
+        
         envFrom:
         - secretRef:
             name: omabank-api-secret-generated
         env:
         - name: REDIS_URL
           value: "redis://omabank-redis-service:6379/0"
-
+        
         resources:
+          requests:
+            cpu: "50m"     
+            memory: "64Mi" 
           limits:
-            memory: "128Mi"
             cpu: "100m"
+            memory: "128Mi"
+        
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # Celery needs write access to /tmp
+          runAsNonRoot: true
+          runAsUser: 65532
+          capabilities:
+            drop:
+            - ALL

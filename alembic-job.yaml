@@ -6,17 +6,44 @@ metadata:
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
+  backoffLimit: 3                    
+  activeDeadlineSeconds: 300         
+  ttlSecondsAfterFinished: 3600      
   template:
     spec:
       serviceAccountName: omabank-api-sa
       restartPolicy: Never
+      securityContext:                 
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: alembic
         image: omabankacrdev923.azurecr.io/omabank-api:latest
         imagePullPolicy: Always
         workingDir: /app
-        # Explicitly pass the alembic ini path
         command: ["/usr/bin/python3", "-m", "alembic", "-c", "/app/alembic.ini", "upgrade", "head"]
+        
         envFrom:
         - secretRef:
             name: omabank-api-secret-generated
+        
+        resources:                     
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 65532
+          capabilities:
+            drop:
+            - ALL

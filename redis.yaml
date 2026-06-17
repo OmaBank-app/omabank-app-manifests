@@ -24,12 +24,30 @@ spec:
       labels:
         app: omabank-redis
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: redis
         image: redis:7-alpine
         ports:
         - containerPort: 6379
         resources:
+          requests:             
+            cpu: "50m"
+            memory: "64Mi"
           limits:
-            memory: "128Mi"
             cpu: "100m"
+            memory: "128Mi"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 999
+          capabilities:
+            drop:
+            - ALL
