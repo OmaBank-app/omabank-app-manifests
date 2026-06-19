@@ -48,7 +48,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: api-container
-        image: omabankacrdev923.azurecr.io/omabank-api:43
+        image: omabankacrdev923.azurecr.io/omabank-api:42
         imagePullPolicy: Always
         
         # Health Probes
